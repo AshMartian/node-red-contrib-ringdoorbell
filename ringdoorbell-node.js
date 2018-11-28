@@ -6,7 +6,7 @@ module.exports = function(RED) {
 	function RingConfig(config) {
 		RED.nodes.createNode(this, config);
 		
-		
+		var globalContext = this.context().global;
 		var node = this;
 		node.modes = {test: config.testmode, debug: config.verbose}
 		node.name = config.name
@@ -47,21 +47,21 @@ module.exports = function(RED) {
 		
 	}
 	
-	// The main node definition - most things happen in here
+	// When an action occurs, can limit to specific device
 	function RingActionNode(config) {
 		
 		// Create a RED node
 		RED.nodes.createNode(this, config);
-		
+		var globalContext = this.context().global;
 		var node = this;
 		
 		// Store local copies of the node configuration (as defined in the .html)
 		node.modes = {test: config.testmode, debug: config.verbose}
 		node.name = config.name
 		node.topic = config.topic
-		node.ring = RED.nodes.getNode(config.ring);
+		node.ringConfig = RED.nodes.getNode(config.ring);
 
-		node.ring.on("ringactivity", function(activity) {
+		node.ringConfig.ring.on("ringactivity", function(activity) {
 			var msg = {}
 			msg.topic = node.topic || node.name || 'ring event'
 			msg.payload = activity
@@ -72,7 +72,7 @@ module.exports = function(RED) {
 		});
 		
 		if (node.modes.debug) {
-			node.ring.on("debug", function(msg) {
+			node.ringConfig.ring.on("debug", function(msg) {
 				node.log(msg);
 			});
 		}
