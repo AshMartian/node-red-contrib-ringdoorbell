@@ -99,6 +99,6 @@ module.exports = function(RED) {
 	RED.nodes.registerType("ring-config", RingConfig, {
 		credentials: credentials
 	});
-	RED.nodes.registerType("ring-action", RingActionNode, { credentials: credentials } );
-	RED.nodes.registerType("ring-feed", DeviceFeedNode, { credentials: credentials } );
+	RED.nodes.registerType("ring-action", RingActionNode);
+	RED.nodes.registerType("ring-feed", DeviceFeedNode);
 }
