@@ -23,7 +23,7 @@ module.exports = function(RED) {
 		node.log("Gathering Ring device info...")
 		node.ring = new RingWrapper(this.email, this.password)
 		
-		node.ring.on("ready", () => {
+		node.ring.events.on("ready", () => {
 			node.ring.ringApi.devices().then(devices => {
 				globalContext.set('ring-devices', devices);
 				node.ringDevices = devices;
@@ -61,7 +61,7 @@ module.exports = function(RED) {
 		node.topic = config.topic
 		node.ringConfig = RED.nodes.getNode(config.ring);
 
-		node.ringConfig.ring.on("ringactivity", function(activity) {
+		node.ringConfig.ring.events.on("ringactivity", function(activity) {
 			var msg = {}
 			msg.topic = node.topic || node.name || 'ring event'
 			msg.payload = activity
@@ -72,7 +72,7 @@ module.exports = function(RED) {
 		});
 		
 		if (node.modes.debug) {
-			node.ringConfig.ring.on("debug", function(msg) {
+			node.ringConfig.ring.events.on("debug", function(msg) {
 				node.log(msg);
 			});
 		}
