@@ -24,10 +24,11 @@ module.exports = function(RED) {
 		node.ring = new RingWrapper(this.email, this.password)
 		
 		node.ring.events.on("ready", () => {
-			node.ring.ringApi.devices().then(devices => {
+			node.log("Ring ready");
+			/*node.ring.ringApi.devices().then(devices => {
 				globalContext.set('ring-devices', devices);
 				node.ringDevices = devices;
-			})
+			})*/
 		})
 
 		RED.httpAdmin.get("/ring-devices", (req,res) => {
