@@ -1,12 +1,26 @@
-<script type="text/x-red" data-template-name="ring doorbell">
-
+<script type="text/x-red" data-template-name="ring-config">
+    
 	<div class="form-row">
-        <label for="node-config-input-email">Email</label>
+        <label for="node-config-input-email">Ring Email</label>
         <input type="text" id="node-input-email">
     </div>
     <div class="form-row">
-        <label for="node-input-password">Password</label>
-        <input type="text" id="node-input-password">
+        <label for="node-input-password">Ring Password</label>
+        <input type="password" id="node-input-password">
+    </div>
+    <!-- By convention, most nodes have a 'name' property. The following div -->
+    <!-- provides the necessary field.                                       -->
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+
+<script type="text/x-red" data-template-name="ring-action">
+    
+	<div class="form-row">
+        <label for="node-input-sense"><i class="fa fa-globe"></i> Config</label>
+        <input id="node-input-sense">
     </div>
     <div class="form-row">
         <label for="node-input-topic"><i class="fa fa-tasks"></i> Topic</label>
@@ -22,38 +36,50 @@
 
 
 <!-- Next, some simple help text is provided for the node.                   -->
-<script type="text/x-red" data-help-name="ring doorbell">
-   <p>
-   A node for node-red that uses the unofficial ring-api package.
-   </p>
-   <p>
-   Outputs an object called <b>msg</b> containing all the device ringactivity in <b>msg.payload</b>
-   The <b>msg.topic</b> can be set in the nodes configuration
-or it will default to the node name or "ring doorbell".
-   </p>
+<script type="text/x-red" data-help-name="ring-action">
+    <p>
+        A node for node-red that uses the unofficial ring-api package.
+    </p>
+    <p>
+        Outputs an object called <b>msg</b> containing all the device ringactivity in <b>msg.payload</b>
+        The <b>msg.topic</b> can be set in the nodes configuration
+        or it will default to the node name or "ring doorbell".
+    </p>
 </script>
 
 <!-- Finally, the node type is registered along with all of its properties   -->
 <!-- The example below shows a small subset of the properties that can be set-->
 <script type="text/javascript">
-    RED.nodes.registerType('ring doorbell',{
-        category: 'input',      // the palette category
-        defaults: {             // defines the editable properties of the node
-        	testmode: {value:"N"},
-        	verbose: {value:"N"},
-        	topic: {value:""},
-        	name: {value:""}
+    RED.nodes.registerType('ring-config',{
+        category: 'config',
+        defaults: {
+            name: {value: "Ring Login", required: true}
         },
         credentials: {
-            email: {type: "text"}, // {value:"", required: true},   //  along with default values.
-            password: {type: "text"} // {value:"", required:true}
+            email: {type:"text", validate: RED.validators.regex(/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/)},
+            password: {type:"password"}
+        },
+        label: function() {
+            return this.name;
+        }
+    });
+    
+    RED.nodes.registerType('ring-action',{
+        category: 'input',      // the palette category
+        defaults: {             // defines the editable properties of the node
+            testmode: {value:"N"},
+            verbose: {value:"N"},
+            topic: {value:""},
+            name: {value:""},
+            config: {value: "", type:"ring-config", required:true}
         },
         color:"#ef6530",
         inputs:0,                // set the number of inputs - only 0 or 1
         outputs:1,               // set the number of outputs - 0 to n
         icon: "bridge.png", //"white-globe.png",    // set the icon (held in public/icons)
         label: function() {      // sets the default label contents
-            return this.name||"ring doorbell";
+            $("#" + this.id.replace('.', '\\.') + " > text").css("fill", "white");
+            return this.name||"ring action";
         },
         labelStyle: function() { // sets the class to apply to the label
             return this.name ? "" : "node_label_italic";

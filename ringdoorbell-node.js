@@ -1,66 +1,104 @@
 module.exports = function(RED) {
-
-	var RingDoorbell = require('./lib/ringdoorbell');
-
-
-	// The main node definition - most things happen in here
-	function RingDoorbellNode(config) {
-
-    	// Create a RED node
-    	RED.nodes.createNode(this, config);
-
+	
+	var RingWrapper = require('./lib/ringdoorbell');
+	
+	
+	function RingConfig(config) {
+		RED.nodes.createNode(this, config);
+		
+		
 		var node = this;
+		node.modes = {test: config.testmode, debug: config.verbose}
+		node.name = config.name
+		
+		
+		var credentials = this.credentials
+		if ((credentials) && (credentials.hasOwnProperty("email")) && (credentials.hasOwnProperty("password"))) {
+			node.email = credentials.email
+			node.password = credentials.password
+		} else {
+			node.error("No email or password set.")
+		}
+		
+		node.log("Gathering Ring device info...")
+		node.ring = new RingWrapper(this.email, this.password)
+		
+		node.ring.on("ready", () => {
+			node.ring.ringApi.devices().then(devices => {
+				globalContext.set('ring-devices', devices);
+				node.ringDevices = devices;
+			})
+		})
 
-    	// Store local copies of the node configuration (as defined in the .html)
-    	node.modes = {test: config.testmode, debug: config.verbose}
-    	node.name = config.name
-    	node.topic = config.topic
+		RED.httpAdmin.get("/ring-devices", (req,res) => {
+            if(node.ringDevices) {
+                res.send(node.ringDevices);
+            } else if(node.ring) {
+                node.ring.ringApi.devices().then(devices => {
+                    res.send(devices);
+                });
+            } else {
+                res.json([{name: "Error, please retry. Ring not connected."}]) 
+            }
+        });
+		
+		// Add any extra configuration to suncalc here
+		node.ring.init()
+		
+	}
+	
+	// The main node definition - most things happen in here
+	function RingActionNode(config) {
+		
+		// Create a RED node
+		RED.nodes.createNode(this, config);
+		
+		var node = this;
+		
+		// Store local copies of the node configuration (as defined in the .html)
+		node.modes = {test: config.testmode, debug: config.verbose}
+		node.name = config.name
+		node.topic = config.topic
+		node.ring = RED.nodes.getNode(config.ring);
 
-    	var credentials = this.credentials
-      if ((credentials) && (credentials.hasOwnProperty("email")) && (credentials.hasOwnProperty("password"))) {
-				node.email = credentials.email
-				node.password = credentials.password
-      } else {
-            node.error("No email or password set.")
-      }
-
-    	node.log("Gathering Ring device info...")
-			node.events = new RingDoorbell(this.email, this.password)
-
-    	node.events.on("ringactivity", function(activity) {
-    		var msg = {}
-    		msg.topic = node.topic || node.name || 'ring event'
-    		msg.payload = activity
-
+		node.ring.on("ringactivity", function(activity) {
+			var msg = {}
+			msg.topic = node.topic || node.name || 'ring event'
+			msg.payload = activity
+			
 			node.log("Injecting ring event");
-    		// send out the message to the rest of the workspace.
-    		node.send(msg);
-    	});
-
-	    if (node.modes.debug) {
-    		node.events.on("debug", function(msg) {
+			// send out the message to the rest of the workspace.
+			node.send(msg);
+		});
+		
+		if (node.modes.debug) {
+			node.ring.on("debug", function(msg) {
 				node.log(msg);
-    		});
-    	}
-
-    	// Add any extra configuration to suncalc here
-    	node.events.init()
-
-    	node.on("close", function() {
+			});
+		}
+		
+		node.on("close", function() {
 			// Called when the node is shutdown - eg on redeploy.
 			// Allows ports to be closed, connections dropped etc.
 			// eg: this.client.disconnect();
 		});
 	}
-
+	
+	function DeviceFeedNode() {
+		
+	}
+	
 	// Register the node by name. This must be called before overriding any of the
 	// Node functions.
-
+	
 	var credentials = {
-        email: {type: "text"},
-        password: {type: "text"}
-    }
-
-	RED.nodes.registerType("ring doorbell", RingDoorbellNode, { credentials: credentials } );
-
+		email: {type: "text"},
+		password: {type: "password"}
+	}
+	
+	RED.nodes.registerType("ring-config", RingConfig, {
+		credentials: credentials
+	});
+	RED.nodes.registerType("ring-action", RingActionNode, { credentials: credentials } );
+	RED.nodes.registerType("ring-feed", DeviceFeedNode, { credentials: credentials } );
 }
