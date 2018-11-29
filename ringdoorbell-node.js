@@ -101,7 +101,7 @@ module.exports = function(RED) {
 				return device.id == node.device
 			});
 			console.log(filteredDevices);
-			msg.payload = await deviceData.all[0].liveStream();
+			msg.payload = await deviceData.doorbells[0].liveStream();
 
             node.send(msg);
         }
