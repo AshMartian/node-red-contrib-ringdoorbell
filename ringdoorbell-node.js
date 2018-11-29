@@ -68,11 +68,13 @@ module.exports = function(RED) {
 			
 			node.log(`Injecting ring event. Device = ${node.device}`);
 			// send out the message to the rest of the workspace.
-			node.send(msg);
+			if(!node.device || node.device == "all" || node.device == msg.doorbot_id) {
+				node.send(msg);
+			}
 		});
 		
 		if (node.modes.debug) {
-			node.ringConfig.ring.ringApi.events.on("debug", function(msg) {
+			node.ringConfig.ring.events.on("debug", function(msg) {
 				node.log(msg);
 			});
 		}

@@ -101,13 +101,13 @@
                     $('#node-config-input-device').append($('<option>', { 
                         value: "all",
                         text : "Select a Device (Default: All)",
-                        selected: true
+                        selected: (!node.device || node.device == "all") || true
                     }));
                     $.each(data.all, function (i, device) {
                         $('#node-config-input-device').append($('<option>', { 
-                            value: device.device_id,
+                            value: device.id,
                             text : device.description,
-                            selected: device.device_id == node.device
+                            selected: device.id == node.device
                         }));
                     });
                 });
