@@ -107,6 +107,10 @@ module.exports = function(RED) {
         }
 
         node.on('input', (msg) => {
+			if(node.device == "all") {
+				node.send({payload: "Must select a device, cannot get feed for all"})
+				return
+			}
             if(node.ringConfig && node.ringConfig.ring) {
                 getFeed(msg);
             } else {
