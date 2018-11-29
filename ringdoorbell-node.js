@@ -24,13 +24,9 @@ module.exports = function(RED) {
 		node.ring = new RingWrapper(this.email, this.password)
 		
 		node.ring.events.on("ready", async () => {
-			node.log("Ring ready", node.ring.ringApi);
-			console.log("Ring ready", node.ring.ringApi);
-			console.log(await node.ring.getDevices());
-			/*node.ring.ringApi.devices().then(devices => {
-				globalContext.set('ring-devices', devices);
-				node.ringDevices = devices;
-			})*/
+			let devices = await node.ring.getDevices();
+			globalContext.set('ring-devices', devices);
+			node.ringDevices = devices;
 		})
 
 		RED.httpAdmin.get("/ring-devices", (req,res) => {
@@ -62,6 +58,7 @@ module.exports = function(RED) {
 		node.modes = {test: config.testmode, debug: config.verbose}
 		node.name = config.name
 		node.topic = config.topic
+		node.device = config.device
 		node.ringConfig = RED.nodes.getNode(config.ring);
 
 		node.ringConfig.ring.events.on("ringactivity", function(activity) {
@@ -69,13 +66,13 @@ module.exports = function(RED) {
 			msg.topic = node.topic || node.name || 'ring event'
 			msg.payload = activity
 			
-			node.log("Injecting ring event");
+			node.log(`Injecting ring event. Device = ${node.device}`);
 			// send out the message to the rest of the workspace.
 			node.send(msg);
 		});
 		
 		if (node.modes.debug) {
-			node.ringConfig.ring.events.on("debug", function(msg) {
+			node.ringConfig.ring.ringApi.events.on("debug", function(msg) {
 				node.log(msg);
 			});
 		}
