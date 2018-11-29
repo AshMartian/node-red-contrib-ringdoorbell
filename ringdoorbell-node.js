@@ -87,7 +87,34 @@ module.exports = function(RED) {
 	}
 	
 	function DeviceFeedNode() {
-		
+		RED.nodes.createNode(this, config);
+        
+        this.ringConfig = RED.nodes.getNode(config.ring);
+
+		var node = this;
+		node.device = config.device;
+
+        var getFeed = async (msg) => {
+            let deviceData = await node.ringConfig.ring.getDevices();
+			
+			deviceData.filter((device) => {
+				return device.id == node.device
+			});
+
+			msg.payload = await deviceData[0].liveStream();
+
+            node.send(msg);
+        }
+
+        node.on('input', (msg) => {
+            if(node.ringConfig && node.ringConfig.ring) {
+                getFeed(msg);
+            } else {
+                node.ringConfig.ring.events.on('ready', function(){
+                    getFeed(msg);
+                });
+            }
+        })
 	}
 
 	function RingDevices(config) {
