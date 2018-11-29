@@ -101,6 +101,7 @@ module.exports = function(RED) {
 				return device.id == node.device
 			});
 			console.log(filteredDevices);
+			console.log(deviceData.doorbells[0])
 			msg.payload = await deviceData.doorbells[0].liveStream();
 
             node.send(msg);
