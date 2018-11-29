@@ -86,7 +86,7 @@ module.exports = function(RED) {
 		});
 	}
 	
-	function DeviceFeedNode() {
+	function DeviceFeedNode(config) {
 		RED.nodes.createNode(this, config);
         
         this.ringConfig = RED.nodes.getNode(config.ring);
