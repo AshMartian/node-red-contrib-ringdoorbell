@@ -23,8 +23,10 @@ module.exports = function(RED) {
 		node.log("Gathering Ring device info...")
 		node.ring = new RingWrapper(this.email, this.password)
 		
-		node.ring.events.on("ready", () => {
-			node.log("Ring ready", node.ring);
+		node.ring.events.on("ready", async () => {
+			node.log("Ring ready", node.ring.ringApi);
+			console.log("Ring ready", node.ring.ringApi);
+			console.log(await node.ring.getDevices());
 			/*node.ring.ringApi.devices().then(devices => {
 				globalContext.set('ring-devices', devices);
 				node.ringDevices = devices;
