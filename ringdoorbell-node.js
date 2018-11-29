@@ -100,8 +100,8 @@ module.exports = function(RED) {
 			let filteredDevices = deviceData.all.filter((device) => {
 				return device.id == node.device
 			});
-
-			msg.payload = await filteredDevices[0].liveStream();
+			console.log(filteredDevices);
+			msg.payload = await deviceData.all[0].liveStream();
 
             node.send(msg);
         }
