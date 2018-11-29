@@ -99,7 +99,7 @@ module.exports = function(RED) {
 
         var getDevices = async (msg) => {
             let deviceData = await node.ringConfig.ring.getDevices();
-            msg.payload = deviceData;
+            msg.payload = deviceData.all;
             node.send(msg);
         }
 
