@@ -97,11 +97,11 @@ module.exports = function(RED) {
         var getFeed = async (msg) => {
             let deviceData = await node.ringConfig.ring.getDevices();
 			
-			deviceData.filter((device) => {
+			let filteredDevices = deviceData.all.filter((device) => {
 				return device.id == node.device
 			});
 
-			msg.payload = await deviceData[0].liveStream();
+			msg.payload = await filteredDevices[0].liveStream();
 
             node.send(msg);
         }
