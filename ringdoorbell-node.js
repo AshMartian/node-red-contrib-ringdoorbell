@@ -89,6 +89,30 @@ module.exports = function(RED) {
 	function DeviceFeedNode() {
 		
 	}
+
+	function RingDevices(config) {
+        RED.nodes.createNode(this, config);
+        
+        this.ringConfig = RED.nodes.getNode(config.ring);
+
+        var node = this;
+
+        var getDevices = async (msg) => {
+            let deviceData = await node.ringConfig.ring.getDevices();
+            msg.payload = deviceData;
+            node.send(msg);
+        }
+
+        node.on('input', (msg) => {
+            if(node.ringConfig && node.ringConfig.ring) {
+                getDevices(msg);
+            } else {
+                node.ringConfig.ring.events.on('ready', function(){
+                    getDevices(msg);
+                });
+            }
+        })
+    }
 	
 	// Register the node by name. This must be called before overriding any of the
 	// Node functions.
@@ -102,5 +126,6 @@ module.exports = function(RED) {
 		credentials: credentials
 	});
 	RED.nodes.registerType("ring-action", RingActionNode);
+	RED.nodes.registerType("ring-devices", RingDevices);
 	RED.nodes.registerType("ring-feed", DeviceFeedNode);
 }
